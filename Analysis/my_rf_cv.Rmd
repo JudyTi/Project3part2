@@ -1,0 +1,72 @@
+---
+title: "my_rf_cv"
+author: "Judy Tian"
+date: "6/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tutorial for `my_rf_cv`
+
+``` {r, message=FALSE}
+library(readr)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+library(randomForest)
+library(kableExtra)
+source("../Code/my_rf_cv.R")
+# Get all data from local subfolder
+my_penguins <- read_csv("../Data/my_penguins.csv")
+my_gapminder <- read_csv("../Data/my_gapminder.csv")
+
+cv_num <- matrix(NA, 30, 3)
+sd_cv <- rep(NA, 3)
+a <- 1
+
+# Iterate through k in (2, 5, 10)
+for (i in c(2, 5, 10)) {
+  # For each value of k, run function 30 times
+  for (j in 1:30) {
+    # Call my function tp get CV estimated MSE
+    cv_num[j, a] <- my_rf_cv(i)
+  }
+  sd_cv[a] <- sd(cv_num[, a])
+  a <- a + 1
+}
+# Build data frame of output
+out1 <- data.frame("k" = "2", "result" = cv_num[, 1])
+out2 <- data.frame("k" = "5", "result" = cv_num[, 2])
+out3 <- data.frame("k" = "10", "result" = cv_num[, 3])
+cv_result <- rbind(out1, out2, out3)
+# Plot 3 boxplots to display data
+ggplot(data = cv_result, aes(x = factor(k), y = result, fill = k)) + 
+  geom_boxplot() +
+  labs(x = "k",
+       y = "CV MSE",
+       title = "3 boxplots of CV MSE from 30 simulations") +
+  theme(plot.title = element_text(hjust = 0.5))
+# Save graph
+ggsave(filename = "boxplot.png", path = "../Output/Figures")
+
+# Build table to display the values.
+cv_table <- data.frame("mean" = colMeans(cv_num), 
+                       "sd" = sd_cv)
+cv_table <- kable_styling(kable(cv_table))
+
+# Save table of summary statistics
+saveRDS(cv_table, "../Output/Results/summary_table.rds")
+# Save simulation results
+cv_num <- data.frame(cv_num)
+colnames(cv_num) <- c("2", "5", "10")
+write_csv(cv_num, path = "../Output/Results/simulation_results.csv")
+```
+
+From the boxplot graph, we could see as `k` increases, the cross-validation error's median decreases and width decreases.
+
+Also, from the table, we could see as `k` increases, the cross-validation error's mean decreases and the standard deviation decreases.
+
+Those two indicates the same thing -- as `k` increases, test is more accurate. This makes sense since the rule of thumb, `k = 5` and `k = 10` tend to result in an ideal balance in terms of the bias-variance tradeoff.
