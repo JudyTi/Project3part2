@@ -11,7 +11,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Tutorial for `my_rf_cv`
 
-``` {r, message=FALSE}
+In this part, we will predict `body_mass_g` using covariates `bill_length_mm`, `bill_depth_mm`, and `flipper_length_mm` through k-fold cross-validation.
+
+The following code use function `my_rf_cv` to get the cross-validation estimate of our test error.
+
+``` {r, message=FALSE, warning=FALSE}
 library(readr)
 library(ggplot2)
 library(magrittr)
@@ -55,7 +59,7 @@ ggsave(filename = "boxplot.png", path = "../Output/Figures")
 # Build table to display the values.
 cv_table <- data.frame("mean" = colMeans(cv_num), 
                        "sd" = sd_cv)
-cv_table <- kable_styling(kable(cv_table))
+(cv_table <- kable_styling(kable(cv_table)))
 
 # Save table of summary statistics
 saveRDS(cv_table, "../Output/Results/summary_table.rds")
@@ -65,8 +69,8 @@ colnames(cv_num) <- c("2", "5", "10")
 write_csv(cv_num, path = "../Output/Results/simulation_results.csv")
 ```
 
-From the boxplot graph, we could see as `k` increases, the cross-validation error's median decreases and width decreases.
+From the boxplot graph, we could see as `k` increases, the test error's median decreases and width of box decreases.
 
-Also, from the table, we could see as `k` increases, the cross-validation error's mean decreases and the standard deviation decreases.
+Also, from the table, we could see as `k` increases, the test error's mean decreases and the standard deviation decreases.
 
-Those two indicates the same thing -- as `k` increases, test is more accurate. This makes sense since the rule of thumb, `k = 5` and `k = 10` tend to result in an ideal balance in terms of the bias-variance tradeoff.
+Those two indicates the same thing -- as `k` increases or `k = 10`, test has less variance and less bias. This makes sense as the rule of thumb, `k = 5` and `k = 10` usually tend to result in an ideal balance in terms of the bias-variance tradeoff.
